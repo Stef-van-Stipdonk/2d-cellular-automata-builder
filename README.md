@@ -1,4 +1,4 @@
-# cellular automaton rule 30
+# 2D Cellular autaton builder
 Define your own 2d cellular automata rules build in C, using SDL2.
 ## Functions:
 In the rule.txt file, write your rules.  
