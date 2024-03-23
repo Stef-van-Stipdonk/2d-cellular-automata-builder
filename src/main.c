@@ -63,7 +63,7 @@ void init(arena_t *arena) {
       state->cells[y][x]->y = y * CELLHEIGHT;
       state->cells[y][x]->h = CELLHEIGHT;
       state->cells[y][x]->w = CELLWIDTH;
-      state->cell_states[y][x] = true;
+      state->cell_states[y][x] = false;
       SDL_RenderFillRect(state->renderer, state->cells[y][x]);
     }
   }
@@ -89,33 +89,38 @@ void parse_rule_file() {
   char c;
   int size = 0;
   while ((c = getc(file)) != EOF) {
+    printf("Char found: %c\n", c);
     if (c == '\n') {
       size = 0;
       continue;
     }
-    if (size == 6) {
-      printf("Something went wrong while reading rules");
-      exit(1);
+
+    if (size == 0) {
+      if (c == '1')
+        state->rule_definitions[state->rules_size].rule[size] = true;
+      else
+        state->rule_definitions[state->rules_size].rule[size] = false;
     }
-
-    if (size == 0)
-      state->rule_definitions[state->rules_size].rule[size] = c;
-
-    if (size == 1)
-      state->rule_definitions[state->rules_size].rule[size] = c;
-
-    if (size == 2)
-      state->rule_definitions[state->rules_size].rule[size] = c;
-
-    if (size == 3 || size == 4 || size == 5)
-      continue;
-
-    if (size == 6) {
-      state->rule_definitions[state->rules_size].center_outcome = c;
-      state->rules_size++;
+    if (size == 1) {
+      if (c == '1')
+        state->rule_definitions[state->rules_size].rule[size] = true;
+      else
+        state->rule_definitions[state->rules_size].rule[size] = false;
     }
+    if (size == 2) {
+      if (c == '1')
+        state->rule_definitions[state->rules_size].rule[size] = true;
+      else
+        state->rule_definitions[state->rules_size].rule[size] = false;
+    }
+    if (size == 4) {
+      if (c == '1')
+        state->rule_definitions[state->rules_size].center_outcome = true;
+      else
+        state->rule_definitions[state->rules_size].center_outcome = false;
 
-    printf("%c", c);
+      ++state->rules_size;
+    }
 
     size++;
   }
@@ -133,6 +138,9 @@ void execute_rule() {
       bool left_rule = state->rule_definitions[j].rule[0];
       bool center_rule = state->rule_definitions[j].rule[1];
       bool right_rule = state->rule_definitions[j].rule[2];
+
+      printf("Checking rule: %i%i%i\n", left_rule, center_rule, right_rule);
+
       if (left == left_rule && center == center_rule && right == right_rule) {
         state->cell_states[0][x] = state->rule_definitions[j].center_outcome;
       }
@@ -167,12 +175,15 @@ int main(void) {
   parse_rule_file();
   bool running = 1;
 
+  state->cell_states[0][CELLSINWIDTH / 2] = true;
+
   while (running) {
     SDL_Event event;
 
     move_cells();
     execute_rule();
     render_state();
+
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
       case SDL_QUIT:
